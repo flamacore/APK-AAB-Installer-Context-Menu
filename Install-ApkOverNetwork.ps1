@@ -283,12 +283,21 @@ try {
 
     # ----- Connect via ADB over network -----
     Write-Info "Connecting to $ipPort via ADB over network..."
-    & $adbExe connect $ipPort 2>&1 | ForEach-Object { Write-Host "  $_" }
-    if ($LASTEXITCODE -ne 0) {
-        throw "adb connect to $ipPort failed."
+    $connectOutput = & $adbExe connect $ipPort 2>&1
+    $connectExitCode = $LASTEXITCODE
+    foreach ($line in $connectOutput) { Write-Host "  $line" }
+
+    if ($connectExitCode -ne 0) {
+        throw "adb connect to $ipPort failed (exit code $connectExitCode)."
     }
 
-    # Verify connection
+    # adb connect can exit 0 but still fail — check output for "failed" / "unable"
+    $connectText = ($connectOutput -join ' ')
+    if ($connectText -match 'failed|unable|cannot|error|refused') {
+        throw "adb connect to $ipPort reported failure: $connectText"
+    }
+
+    # Verify device is in 'device' state
     $devLines = & $adbExe devices
     $connected = $false
     foreach ($line in $devLines) {
@@ -348,7 +357,7 @@ catch {
     # Try to disconnect even on failure
     try {
         if ($ipPort) {
-            $null = & $adbExe disconnect $ipPort 2>&1 | Out-Null
+            $null = & $adbExe disconnect $ipPort 2>&1
         }
     }
     catch {}
