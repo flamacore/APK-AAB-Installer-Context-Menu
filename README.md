@@ -17,13 +17,23 @@ Right-click a `.aab` file → `Install aab to device`
 
 Right-click a `.apk` or `.aab` file → `Install to ADB device (network)...`
 
-1. Shows a dialog asking for `IP:port` (e.g. `192.168.1.100:5555`),
-2. Connects to the device via `adb connect`,
-3. If `.aab`: builds a universal APK using `bundletool` (same as USB flow),
-4. Installs the APK with `adb install -r -d`,
-5. Disconnects cleanly with `adb disconnect`.
+Two modes in the dialog:
 
-Fails immediately on any error (invalid IP, connection refused, install failure).
+**Direct connect** — for devices already authorized or using TCP/IP port 5555:
+1. Enter `IP:port` (e.g. `192.168.1.100:5555`),
+2. Connects via `adb connect`.
+
+**Pair first (Android 11+)** — for wireless debugging with pairing code:
+1. Enter pairing `IP:port` and 6-digit code from "Pair device with pairing code",
+2. Enter connect `IP:port` from "Wireless debugging" (different port),
+3. Runs `adb pair`, then `adb connect`.
+
+Both modes then:
+1. If `.aab`: builds a universal APK using `bundletool` (same as USB flow),
+2. Installs the APK with `adb install -r -d`,
+3. Disconnects cleanly with `adb disconnect`.
+
+Fails immediately on any error (invalid IP, wrong code, connection refused, install failure).
 
 ## Files
 
